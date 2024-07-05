@@ -21,7 +21,7 @@ export default function ChatsSidebar({
           onClick={() => onChatSelected(chat)}
           style={{
             cursor: "pointer",
-            fontWeight: selectedChat?.id == chat.id ? "bold" : "",
+            fontWeight: selectedChat?.id === chat.id ? "bold" : "",
           }}
         >
           <div className="profile-holder">

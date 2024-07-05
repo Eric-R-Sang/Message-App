@@ -1,42 +1,43 @@
 import React, { useState } from "react";
-
 import { createUserWithEmailAndPassword } from "firebase/auth";
-
 import { auth } from "../../firebase/firebase";
 import { useNavigate } from "react-router-dom";
 import Button from "../common/Button";
 import ImageSelector from "../common/ImageSelector";
 import Alert from "../common/Alert";
-
 import FileService from "../../services/file.service";
 import ProfileService from "../../services/profile.service";
-
 import { Profile } from "../../models/Profile";
 
 export default function RegisterPage() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
   const [name, setName] = useState("");
   const [surname, setSurname] = useState("");
   const [file, setFile] = useState(null);
-
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   async function onFormSubmit(e) {
     e.preventDefault();
-
     setLoading(true);
     try {
+      let downloadUrl = null;
+      if (file) {
+        downloadUrl = await FileService.uploadImage(
+          file,
+          "profile-images",
+          (progress) => setUploadProgress(progress)
+        );
+      }
+
       const userCred = await createUserWithEmailAndPassword(
         auth,
         email,
         password
       );
-
-      // upload file and get downloadUrl
-      const downloadUrl = await FileService.uploadImage(file);
 
       await ProfileService.saveProfile(
         new Profile({
@@ -49,7 +50,7 @@ export default function RegisterPage() {
 
       navigate("/");
     } catch (err) {
-      alert(err.message);
+      setError(err.message);
     }
     setLoading(false);
   }
@@ -58,13 +59,27 @@ export default function RegisterPage() {
     <div className="container my-5">
       <div className="card card-body">
         <h1>Register</h1>
-        <p>Please enter your email and password to register</p>
+        <p>Please enter your details to register</p>
 
         <form onSubmit={onFormSubmit}>
           <ImageSelector
             title="Profile Picture"
             onFileChange={(file) => setFile(file)}
-          ></ImageSelector>
+          />
+          {uploadProgress > 0 && uploadProgress < 100 && (
+            <div className="progress mb-3">
+              <div
+                className="progress-bar"
+                role="progressbar"
+                style={{width: `${uploadProgress}%`}}
+                aria-valuenow={uploadProgress}
+                aria-valuemin="0"
+                aria-valuemax="100"
+              >
+                {uploadProgress.toFixed(0)}%
+              </div>
+            </div>
+          )}
           <div className="mb-3">
             <label className="form-label">Name</label>
             <input
@@ -72,19 +87,19 @@ export default function RegisterPage() {
               onChange={(e) => setName(e.target.value)}
               type="text"
               className="form-control"
-            ></input>
+              required
+            />
           </div>
-
           <div className="mb-3">
             <label className="form-label">Surname</label>
             <input
-              value={email}
+              value={surname}
               onChange={(e) => setSurname(e.target.value)}
               type="text"
               className="form-control"
-            ></input>
+              required
+            />
           </div>
-
           <div className="mb-3">
             <label className="form-label">Email Address</label>
             <input
@@ -92,9 +107,9 @@ export default function RegisterPage() {
               onChange={(e) => setEmail(e.target.value)}
               type="email"
               className="form-control"
-            ></input>
+              required
+            />
           </div>
-
           <div className="mb-3">
             <label className="form-label">Password</label>
             <input
@@ -102,13 +117,10 @@ export default function RegisterPage() {
               onChange={(e) => setPassword(e.target.value)}
               type="password"
               className="form-control"
-            ></input>
+              required
+            />
           </div>
-
           <div className="d-flex justify-content-end mt-4">
-            {/* <button type="submit" className="btn btn-primary">
-              Register
-            </button> */}
             <Button type="submit" className="px-5" loading={loading}>
               Register
             </Button>

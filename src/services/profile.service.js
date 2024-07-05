@@ -42,7 +42,7 @@ class ProfileService {
 
   async saveProfile(profile) {
     const docRef = doc(db, this.collection, profile.id);
-    await setDoc(docRef, profile.toJson());
+    await setDoc(docRef, profile.toJson(), { merge: true });
   }
 }
 const service = new ProfileService();

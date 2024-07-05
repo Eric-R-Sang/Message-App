@@ -20,6 +20,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const userCred = await signInWithEmailAndPassword(auth, email, password);
+      auth.currentUser = userCred.user
       // console.log(userCred);
       // console.log(userCred.user.uid);
       navigate("/");

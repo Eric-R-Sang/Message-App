@@ -29,6 +29,14 @@ function App() {
     return () => usub();
   }, []);
 
+  if (!isUserSet) {
+    return (
+      <div className="text-center m-5">
+        <Spinner />
+      </div>
+    );
+  }
+
   return (
     <BrowserRouter>
       <Navbar user={user} />
@@ -38,7 +46,7 @@ function App() {
             path="/"
             element={
               <RequireAuth user={user}>
-                <ChatsPage></ChatsPage>
+                <ChatsPage user={user} />
               </RequireAuth>
             }
           ></Route>

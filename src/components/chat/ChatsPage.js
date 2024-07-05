@@ -15,6 +15,7 @@ export default function ChatsPage({ user }) {
   // component state
   const [profiles, setProfiles] = useState([]);
   const [chats, setChats] = useState([]);
+  const [selectedChat, setSelectedChat] = useState(null);
   const [chat, setChat] = useState(null);
 
   useEffect(() => {
@@ -30,19 +31,37 @@ export default function ChatsPage({ user }) {
     // unsubscribe
     // componentWillUnmount
     return () => unsubscribe();
-  }, []);
+  }, [user]);
 
   async function fetchProfiles() {
-    const profiles = await ProfileService.fetchProfiles();
+    const profiles = await ProfileService.fetchProfile();
     setProfiles(profiles);
   }
 
+  const handleNewChat = async (otherUserId) => {
+    try {
+      const newChat = await ChatService.createChat([user.uid, otherUserId]);
+      setSelectedChat(newChat);
+    } catch (error) {
+      console.error("Error creating new chat:", error);
+    }
+  };
+
+  if (!user) {
+    return <div>Loading...</div>; // or handle this case as appropriate
+  };
+  
   return (
     <div className="container my-4">
       <h3>Chats: {user.email}</h3>
 
       <div>
-        <AvailableChats profiles={profiles} user={user} chats={chats} />
+        <AvailableChats 
+          profiles={profiles} 
+          user={user} 
+          chats={chats} 
+          onNewChat={handleNewChat}
+        />
       </div>
 
       <div className="row mt-5">
@@ -52,6 +71,7 @@ export default function ChatsPage({ user }) {
             user={user}
             chats={chats}
             chat={chat}
+            selectedChat={selectedChat}
             onChatSelected={(chat) => setChat(chat)}
           />
         </div>
